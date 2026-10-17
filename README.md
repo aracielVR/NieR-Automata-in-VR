@@ -181,16 +181,6 @@ ControllerRumble=1  the game's rumble on the VR controllers
                     its file (e.g. d3d11_reshade.dll) and put the name here.
 [Debug] Verbose=1   more detail in the log
 
-
-Other mods
-----------
-- Texture packs, FAR, and anything installed as dxgi.dll (ReShade, Special K)
-  don't conflict by file name. FAR's own GI setting does the same job as
-  ours; use one of them.
-- Laptop / multi-GPU: the game must run on the same GPU as the headset; the
-  log says so if it doesn't.
-
-
 Problems?
 ---------
 Send NieRVR.log (the previous run's is NieRVR.prev.log), NieRVR_crash.dmp
