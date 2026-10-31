@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "clang-tidy: all files",
+            "type": "shell",
+            "command": "cmake --build build --target tidy",
+            "options": { "env": { "PATH": "C:\\msys64\\clang64\\bin;${env:PATH}" } },
+            "problemMatcher": { "base": "$gcc", "owner": "clang-tidy", "fileLocation": "absolute" },
+            "presentation": { "reveal": "silent", "clear": true }
+        }
+    ]
+}

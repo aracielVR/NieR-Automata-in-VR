@@ -1,0 +1,11 @@
+{
+    "clangd.path": "C:\\msys64\\clang64\\bin\\clangd.exe",
+    "clangd.arguments": ["--header-insertion=never", "--compile-commands-dir=build", "--clang-tidy"],
+    "[cpp]": { "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd", "editor.formatOnSave": false },
+    "[c]": { "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd", "editor.formatOnSave": false },
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "files.associations": { "*.S": "asm" },
+    "editor.insertSpaces": false,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false
+}

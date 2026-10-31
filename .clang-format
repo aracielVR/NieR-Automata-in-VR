@@ -1,0 +1,42 @@
+BasedOnStyle: Google
+ColumnLimit: 0
+
+# indentation: tabs, 4 wide; spaces after the tabs only to line up continuation lines
+UseTab: ForContinuationAndIndentation
+IndentWidth: 4
+TabWidth: 4
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+IndentCaseLabels: true
+NamespaceIndentation: None
+FixNamespaceComments: true
+
+# line up a call's continuation lines with its first argument
+AlignAfterOpenBracket: Align
+BinPackArguments: true
+BinPackParameters: true
+
+# Type* p, not Type *p
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+# short things stay on one line: `if (!x) return;`, `bool Ok() { return y; }`, `case A: f(); break;`
+# without braces, each if / else if / else can be one line; braced blocks always go multi-line
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortLoopsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortBlocksOnASingleLine: Empty
+
+# comments: two spaces before //, and left where they are (not re-aligned or re-wrapped)
+SpacesBeforeTrailingComments: 2
+AlignTrailingComments:
+  Kind: Leave
+ReflowComments: false
+
+# includes stay in the order they're written (each file's own header first)
+SortIncludes: Never
+IncludeBlocks: Preserve
+
+LineEnding: CRLF
+InsertNewlineAtEOF: true

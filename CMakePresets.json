@@ -1,0 +1,27 @@
+{
+	"version": 6,
+	"configurePresets": [
+		{
+			"name": "clang",
+			"displayName": "Clang (MSYS2 CLANG64)",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build",
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "C:/msys64/clang64/bin/clang.exe",
+				"CMAKE_CXX_COMPILER": "C:/msys64/clang64/bin/clang++.exe",
+				"CMAKE_ASM_COMPILER": "C:/msys64/clang64/bin/clang.exe",
+				"CMAKE_MAKE_PROGRAM": "C:/msys64/clang64/bin/ninja.exe",
+				"CMAKE_INSTALL_PREFIX": "C:/Program Files (x86)/Steam/steamapps/common/NieRAutomata"
+			},
+			"environment": {
+				"PATH": "C:/msys64/clang64/bin;$penv{PATH}"
+			}
+		}
+	],
+	"buildPresets": [
+		{ "name": "clang", "configurePreset": "clang" }
+	],
+	"testPresets": [
+		{ "name": "clang", "configurePreset": "clang", "output": { "outputOnFailure": true } }
+	]
+}

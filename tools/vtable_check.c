@@ -1,4 +1,4 @@
-/* Compile-time check that the vtable slots hardcoded in src/probe.cpp match d3d11.h. */
+/* Compile-time check that the vtable slots hardcoded in src/render/d3d_hooks.cpp match d3d11.h. */
 #define CINTERFACE
 #include <windows.h>
 #include <d3d11.h>
@@ -27,6 +27,7 @@ SLOT(ID3D11DeviceContext, PSSetShaderResources, 8)
 SLOT(ID3D11DeviceContext, CSSetShaderResources, 67)
 SLOT(ID3D11DeviceContext, CSSetUnorderedAccessViews, 68)
 SLOT(ID3D11DeviceContext, CSSetShader, 69)
+SLOT(ID3D11Device, CreateTexture2D, 5)
 SLOT(ID3D11Device, CreateVertexShader, 12)
 SLOT(ID3D11Device, CreatePixelShader, 15)
 SLOT(ID3D11Device, CreateComputeShader, 18)
@@ -39,7 +40,7 @@ SLOT(IDXGIFactory, CreateSwapChain, 10)
 SLOT(IDXGIOutput, GetDisplayModeList, 8)
 SLOT(IDXGIOutput, FindClosestMatchingMode, 9)
 SLOT(IDXGIOutput1, GetDisplayModeList1, 19)
-/* replay.cpp (BothEyes recorder) */
+/* replay.cpp (synchronized-mode recorder) */
 SLOT(ID3D11DeviceContext, PSSetSamplers, 10)
 SLOT(ID3D11DeviceContext, IASetInputLayout, 17)
 SLOT(ID3D11DeviceContext, IASetVertexBuffers, 18)

@@ -2,7 +2,7 @@
 """Generates the d3d11.dll proxy export table.
 
 Every export of the real d3d11.dll gets an assembly thunk that jumps to the real function.
-D3D11CreateDevice and D3D11CreateDeviceAndSwapChain are implemented in C++ (proxy.cpp) instead,
+D3D11CreateDevice and D3D11CreateDeviceAndSwapChain are implemented in C++ (d3d11_proxy.cpp) instead,
 because that is where the mod hooks in.
 
 Usage: gen_exports.py <d3d11.def from mingw-w64> <output dir>

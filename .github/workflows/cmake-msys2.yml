@@ -1,0 +1,164 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Publish a release of this build?
+        type: choice
+        options: [build only, release, pre-release]
+        default: build only
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.ver.outputs.tag }}
+      version: ${{ steps.ver.outputs.version }}
+      zip: ${{ steps.ver.outputs.zip }}
+    steps:
+      - id: ver
+        run: |
+          tag=""
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            tag="$GITHUB_REF_NAME"
+          elif [[ "${{ inputs.release }}" == release || "${{ inputs.release }}" == pre-release ]]; then
+            base="v$(date -u +%Y.%m.%d)"
+            [[ "${{ inputs.release }}" == pre-release ]] && base="$base-beta"
+            taken=$(git ls-remote --tags "https://github.com/$GITHUB_REPOSITORY.git" "refs/tags/$base*" | sed 's#.*refs/tags/##')
+            tag="$base"
+            n=1
+            while grep -qx "$tag" <<< "$taken"; do n=$((n + 1)); tag="$base.$n"; done
+          fi
+          if [[ -n "$tag" ]]; then version="${tag#v}"; else version="dev-${GITHUB_SHA::7}"; fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "zip=NieRVR-${tag:-$version}.zip" >> "$GITHUB_OUTPUT"
+          echo "version $version${tag:+, release tag $tag}"
+
+  build:
+    needs: version
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: CLANG64
+          update: true
+          install: >-
+            mingw-w64-clang-x86_64-clang
+            mingw-w64-clang-x86_64-lld
+            mingw-w64-clang-x86_64-openxr-sdk
+            mingw-w64-clang-x86_64-cmake
+            mingw-w64-clang-x86_64-ninja
+            zip
+
+      - uses: actions/cache@v4
+        with:
+          path: .deps
+          key: deps-${{ hashFiles('CMakeLists.txt') }}
+
+      - name: Configure
+        run: >-
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang
+          -DNIERVR_DLSS=OFF
+          -DNIERVR_DEBUG_MODULE=OFF
+          -DNIERVR_VERSION="${{ needs.version.outputs.version }}"
+          -DCMAKE_INSTALL_PREFIX="$PWD/dist"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Package
+        run: |
+          cmake --install build --component mod
+          cp LICENSE README.md dist/
+          # code compiled into d3d11.dll: their licences ship with it
+          cp .deps/imgui-src/LICENSE.txt dist/LICENSE-imgui.txt
+          cp .deps/minhook-src/LICENSE.txt dist/LICENSE-minhook.txt
+          cd dist && zip -r "../${{ needs.version.outputs.zip }}" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NieRVR-${{ github.sha }}
+          path: |
+            dist/
+            build/d3d11.map
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - if: needs.version.outputs.tag != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-zip
+          path: ${{ needs.version.outputs.zip }}
+
+  lint:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: CLANG64
+          update: true
+          install: >-
+            mingw-w64-clang-x86_64-clang
+            mingw-w64-clang-x86_64-lld
+            mingw-w64-clang-x86_64-clang-tools-extra
+            mingw-w64-clang-x86_64-openxr-sdk
+            mingw-w64-clang-x86_64-cmake
+            mingw-w64-clang-x86_64-ninja
+
+      - uses: actions/cache@v4
+        with:
+          path: .deps
+          key: deps-${{ hashFiles('CMakeLists.txt') }}
+
+      - name: Configure
+        run: >-
+          cmake -S . -B build -G Ninja
+          -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang
+          -DNIERVR_DLSS=OFF
+
+      - name: Format check
+        run: cmake --build build --target format-check
+
+      - name: clang-tidy
+        run: cmake --build build --target tidy
+
+  release:
+    needs: [version, build]
+    if: needs.version.outputs.tag != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-zip
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          files: ${{ needs.version.outputs.zip }}
+          generate_release_notes: true
+          prerelease: ${{ contains(needs.version.outputs.tag, '-') }}
+          draft: true

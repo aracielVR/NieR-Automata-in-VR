@@ -14,7 +14,7 @@ import struct
 import sys
 
 R_FRAME_BEGIN, R_SET_CB, R_CB_DATA, R_SET_SHADER, R_DRAW, R_SET_RT, R_VIEWPORT, R_SHADER_BLOB, R_DISPATCH, \
-    R_EXEC_CMDLIST, R_FRAME_END, R_SET_SRV, R_SET_UAV = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14
+    R_EXEC_CMDLIST, R_FRAME_END, R_SET_SRV, R_SET_UAV, R_TEX_HASH, R_BUF_DATA = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16
 STAGES = ["VS", "PS", "GS", "CS"]
 DRAW_KINDS = ["Draw", "DrawIndexed", "DrawInstanced", "DrawIndexedInstanced"]
 VIA = ["map", "update", "readback"]
@@ -78,6 +78,12 @@ def parse(data):
             stage, start, count = p[0], *struct.unpack_from("<II", p, 4)
             views = [struct.unpack_from("<QIIII", p, 12 + 24 * i) for i in range(count)]
             events.append(Event("setsrv" if typ == R_SET_SRV else "setuav", stage=stage, start=start, views=views))
+        elif typ == R_BUF_DATA:  # part of a shader-resource buffer written by UpdateSubresource
+            buf, offset, length = struct.unpack_from("<QII", p, 0)
+            events.append(Event("bufdata", buf=buf, offset=offset, data=bytes(p[16:16 + length])))
+        elif typ == R_TEX_HASH:  # 3Dmigoto's texture hash of a texture just bound (render/texture_tags.cpp)
+            res, h = struct.unpack_from("<QI", p, 0)
+            events.append(Event("texhash", res=res, hash=h))
     return events, blobs
 
 
